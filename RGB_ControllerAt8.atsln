@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Atmel Studio Solution File, Format Version 11.00
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "RGB_ControllerAt8", "RGB_ControllerAt8\RGB_ControllerAt8.cproj", "{EBC3CBDF-9EEF-420F-B57E-123D71DB0A74}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EBC3CBDF-9EEF-420F-B57E-123D71DB0A74}.Debug|AVR.ActiveCfg = Debug|AVR
+		{EBC3CBDF-9EEF-420F-B57E-123D71DB0A74}.Debug|AVR.Build.0 = Debug|AVR
+		{EBC3CBDF-9EEF-420F-B57E-123D71DB0A74}.Release|AVR.ActiveCfg = Release|AVR
+		{EBC3CBDF-9EEF-420F-B57E-123D71DB0A74}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
