@@ -5,27 +5,22 @@
  *  Author: DawidN
  */ 
 
-
-#define F_CPU 11059200UL
 #include <avr/io.h>
+#define F_CPU 11059200UL
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #define UART_BAUD_RATE 115200
 #include "uart.h"
 
 #define BLUE (1<<PC0)
-#define GREEN (1<<PC4)
-#define RED (1<<PC2)
+#define GREEN (1<<PC2)
+#define RED (1<<PC4)
 #define LED_PORT PORTC
 #define LED_DDR DDRC
 
-volatile uint8_t pwm_GREEN, pwm_BLUE, pwm_RED; //definicje zmiennych przechowuj¹cych wartoœc pwm
-uint8_t i; //zmienna na potrzeby pêtli for
-
-
-char printbuff[30];
-volatile char inputbuff[10];
-
+volatile uint8_t pwm_GREEN=255, pwm_BLUE=255, pwm_RED=255; //definicje zmiennych przechowuj¹cych wartoœc pwm
+volatile char inputbuff[40];
+volatile int freq = 0;
 
 
 ISR(TIMER1_COMPA_vect) 
@@ -53,10 +48,18 @@ void CTC1_init() //inciclalizacja timera1
 {		
 	TCCR1B |= (1 << WGM12)|(1 << CS11)|(1 << CS10);
 	TCNT1 = 0;	
-	OCR1A = 9; 
+	OCR1A = 7; 
 	TIMSK |= (1 << OCIE1A);
 }
 
+char checkReceived()
+{
+	if(inputbuff[0]== 'S' && inputbuff[1]== 'E' && inputbuff[2]== 'T')	
+		if(inputbuff[4]== 'R' && inputbuff[9]== 'G' && inputbuff[14]== 'B'&& inputbuff[19]== 'F')
+			if(inputbuff[25]== 'E' && inputbuff[26]== 'N' && inputbuff[27]== 'D')
+				return 0;
+	return 1;
+}
 
 int main(void) 
 { 
@@ -64,30 +67,43 @@ int main(void)
 	LED_PORT &= ~(GREEN | BLUE | RED); //wy³¹czamy na pocz¹tek wyjœcia diody RGB
 	LED_PORT |= (1<<PC1) | (1<<PC3)  | (1<<PC5); //za³¹czamy pull-upy przy nieu¿ywanych pinach
 	LED_DDR &= ~((1<<PC1) | (1<<PC3)| (1<<PC5)); //ustawiamy nieu¿ywane piny jako wejœcia
-	_delay_ms(1000);	
+	_delay_ms(1000);
+		
 	uart_init(UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU));
 	CTC1_init();
 	sei();
-	unsigned int receivedData, aa=0;	
+	int receivedData, aa=0;	
 	char out = 0;	
 	while(1) 
 	{    
-		/*receivedData = uart_available();	
-		if(receivedData >= 6)
-		{	
-			out = 0;									
-			for(int i = 0; i < 6; i++)
-			{					
-				aa = uart_getc();					
-				inputbuff[i]= aa & 0xFF;
-				if(inputbuff[0]== 'D' && i !=0)
-				{
-					out +=  (inputbuff[i]-0x30)<<(i-1);
-				}											    	
-			}					
-			uart_flush();																	
-		}	*/
-		for (i = 0; i < 255; i++) { //rozjaœniamy diodê GREENon¹
+		receivedData = uart_available();	
+		if(receivedData >= 28)
+		{			
+			for(int i = 0; i < 28; i++)
+			{
+				aa = uart_getc();				
+				inputbuff[i]= aa & 0xFF;						
+			}						
+			if(checkReceived() == 0)
+			{
+				pwm_RED = (inputbuff[5]-0x30)*100+(inputbuff[6]-0x30)*10+(inputbuff[7]-0x30);
+				pwm_GREEN = (inputbuff[10]-0x30)*100+(inputbuff[11]-0x30)*10+(inputbuff[12]-0x30);
+				pwm_BLUE = (inputbuff[15]-0x30)*100+(inputbuff[16]-0x30)*10+(inputbuff[17]-0x30);
+				freq = (inputbuff[20]-0x30)*1000+(inputbuff[21]-0x30)*100+(inputbuff[22]-0x30)*10+(inputbuff[23]-0x30);
+				uart_puts("ACK\r\n");
+			}
+			else
+				uart_puts("NACK\r\n");
+			uart_flush();																						
+		}	   		
+	} 
+	return 0; 
+}
+
+
+
+
+/*for (i = 0; i < 255; i++) { //rozjaœniamy diodê GREENon¹
 				  pwm_GREEN++; //inkrementacja zmiennej pwm diody GREENonej
 				  _delay_ms(2); //odstep czasowy
 			}
@@ -112,9 +128,4 @@ int main(void)
 		  for (i = 0; i < 255; i++) { //œciemniamy diodê REDwon¹  
 		   pwm_RED--; //dekrementacja zmiennej pwm diody REDwonej  
 		   _delay_ms(2); //odstep czasowy  
-		  }  
-		   		
-	} 
-	return 0; 
-}
-
+		  }  */
